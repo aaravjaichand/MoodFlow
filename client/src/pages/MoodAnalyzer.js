@@ -1,6 +1,6 @@
-import React, { useState, useRef, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Camera, Music, Heart, Play, Pause, SkipForward, Volume2, Share2, Download, Brain } from 'lucide-react';
+import { Camera, Music, Heart, Play, Brain } from 'lucide-react';
 import { SocketContext } from '../context/SocketContext';
 import { useUser } from '../context/UserContext';
 import toast from 'react-hot-toast';
@@ -16,25 +16,11 @@ const MoodAnalyzer = () => {
   const [currentSong, setCurrentSong] = useState(null);
   const [playlistName, setPlaylistName] = useState('');
   const [showPlaylistModal, setShowPlaylistModal] = useState(false);
-  const [analysisHistory, setAnalysisHistory] = useState([]);
-  const [spotifyUserId, setSpotifyUserId] = useState(null);
 
   const socket = useContext(SocketContext);
   const { user, updateUserPreferences } = useUser();
   const [newGenre, setNewGenre] = useState('');
   const [newArtist, setNewArtist] = useState('');
-
-  // Check for Spotify success URL parameter
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const userId = urlParams.get('userId');
-    if (userId) {
-      setSpotifyUserId(userId);
-      toast.success('Spotify connected successfully!');
-      // Clean up URL
-      window.history.replaceState({}, document.title, window.location.pathname);
-    }
-  }, []);
 
   const addGenre = () => {
     if (newGenre.trim() && !user.favoriteGenres.includes(newGenre.trim())) {
@@ -82,18 +68,18 @@ const MoodAnalyzer = () => {
         setRecommendations(response.data.recommendations);
 
         // Add to history
-        setAnalysisHistory(prev => [...prev, {
-          id: Date.now(),
-          mood: {
-            dominant: emotionData.dominant,
-            confidence: emotionData.confidence,
-            allEmotions: emotionData.allEmotions,
-            aiAnalysis: emotionData.aiAnalysis
-          },
-          timestamp: new Date(),
-          recommendations: response.data.recommendations,
-          aiPowered: response.data.aiPowered
-        }]);
+        // setAnalysisHistory(prev => [...prev, {
+        //   id: Date.now(),
+        //   mood: {
+        //     dominant: emotionData.dominant,
+        //     confidence: emotionData.confidence,
+        //     allEmotions: emotionData.allEmotions,
+        //     aiAnalysis: emotionData.aiAnalysis
+        //   },
+        //   timestamp: new Date(),
+        //   recommendations: response.data.recommendations,
+        //   aiPowered: response.data.aiPowered
+        // }]);
 
         setIsAnalyzing(false);
 
@@ -207,17 +193,6 @@ const MoodAnalyzer = () => {
     }
   };
 
-  const connectSpotify = async () => {
-    try {
-      const response = await axios.get('/api/spotify-login');
-      if (response.data.success) {
-        window.location.href = response.data.authUrl;
-      }
-    } catch (error) {
-      toast.error('Failed to connect to Spotify');
-    }
-  };
-
   const createPlaylist = async () => {
     if (!playlistName.trim()) {
       toast.error('Please enter a playlist name');
@@ -295,60 +270,14 @@ const MoodAnalyzer = () => {
           </p>
         </motion.div>
 
-        {/* Spotify Connection */}
-        {!spotifyUserId && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="card"
-            style={{ marginBottom: '32px', textAlign: 'center' }}
-          >
-            <h3 style={{
-              fontSize: '1.3rem',
-              fontWeight: '600',
-              color: 'white',
-              marginBottom: '16px',
-            }}>
-              🎵 Connect Spotify Premium for Full Playback
-            </h3>
-            <p style={{
-              color: 'rgba(255, 255, 255, 0.7)',
-              fontSize: '1rem',
-              marginBottom: '20px',
-            }}>
-              Connect your Spotify Premium account to play recommended songs directly in the app!
-            </p>
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="btn btn-primary"
-              onClick={connectSpotify}
-              style={{
-                background: 'linear-gradient(135deg, #1DB954 0%, #1ed760 100%)',
-                border: 'none',
-                padding: '12px 24px',
-                borderRadius: '12px',
-                color: 'white',
-                fontWeight: '600',
-                cursor: 'pointer',
-              }}
-            >
-              Connect Spotify Premium
-            </motion.button>
-          </motion.div>
-        )}
-
-        {/* Spotify Player */}
-        {spotifyUserId && (
-          <SpotifyPlayer
-            currentSong={currentSong}
-            isPlaying={isPlaying}
-            onPlayPause={togglePlayPause}
-            onNext={handleNext}
-            onPrevious={handlePrevious}
-            userId={spotifyUserId}
-          />
-        )}
+        {/* Music Player - Always show since it's simplified */}
+        <SpotifyPlayer
+          currentSong={currentSong}
+          isPlaying={isPlaying}
+          onPlayPause={togglePlayPause}
+          onNext={handleNext}
+          onPrevious={handlePrevious}
+        />
 
         {/* User Preferences Section */}
         <motion.div

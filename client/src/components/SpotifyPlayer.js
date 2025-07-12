@@ -4,217 +4,133 @@ import { Play, Pause, SkipForward, SkipBack, Volume2, VolumeX } from 'lucide-rea
 import toast from 'react-hot-toast';
 
 const SpotifyPlayer = ({ currentSong, isPlaying, onPlayPause, onNext, onPrevious }) => {
-    const [player, setPlayer] = useState(null);
-    const [deviceId, setDeviceId] = useState(null);
     const [volume, setVolume] = useState(50);
     const [isMuted, setIsMuted] = useState(false);
-    const [isSpotifyConnected, setIsSpotifyConnected] = useState(false);
     const [progress, setProgress] = useState(0);
-    const progressInterval = useRef(null);
+    const [duration, setDuration] = useState(0);
+    const audioRef = useRef(new Audio());
 
-    // Initialize Spotify Web Playback SDK
+    // Initialize audio element
     useEffect(() => {
-        const initializeSpotify = async () => {
-            try {
-                // Check if Spotify is available
-                if (!window.Spotify) {
-                    console.log('Spotify Web Playback SDK not available');
-                    return;
-                }
+        const audio = audioRef.current;
 
-                // Request authorization
-                const token = await getSpotifyToken();
-                if (!token) {
-                    console.log('No Spotify token available');
-                    return;
-                }
+        // Set up audio event listeners
+        audio.addEventListener('loadedmetadata', () => {
+            setDuration(audio.duration);
+        });
 
-                const player = new window.Spotify.Player({
-                    name: 'MoodFlow Player',
-                    getOAuthToken: cb => { cb(token); }
-                });
-
-                // Error handling
-                player.addListener('initialization_error', ({ message }) => {
-                    console.error('Spotify initialization error:', message);
-                    toast.error('Failed to connect to Spotify');
-                });
-
-                player.addListener('authentication_error', ({ message }) => {
-                    console.error('Spotify authentication error:', message);
-                    toast.error('Spotify authentication failed');
-                });
-
-                player.addListener('account_error', ({ message }) => {
-                    console.error('Spotify account error:', message);
-                    toast.error('Spotify account error');
-                });
-
-                player.addListener('playback_error', ({ message }) => {
-                    console.error('Spotify playback error:', message);
-                    toast.error('Playback error');
-                });
-
-                // Playback status updates
-                player.addListener('player_state_changed', state => {
-                    if (state) {
-                        const { position, duration } = state;
-                        if (duration > 0) {
-                            setProgress((position / duration) * 100);
-                        }
-                    }
-                });
-
-                // Ready
-                player.addListener('ready', ({ device_id }) => {
-                    console.log('Ready with Device ID', device_id);
-                    setDeviceId(device_id);
-                    setIsSpotifyConnected(true);
-                    toast.success('Connected to Spotify!');
-                });
-
-                // Not Ready
-                player.addListener('not_ready', ({ device_id }) => {
-                    console.log('Device ID has gone offline', device_id);
-                    setIsSpotifyConnected(false);
-                });
-
-                // Connect to the player
-                const success = await player.connect();
-                if (success) {
-                    setPlayer(player);
-                }
-            } catch (error) {
-                console.error('Spotify initialization error:', error);
-                toast.error('Failed to initialize Spotify player');
+        audio.addEventListener('timeupdate', () => {
+            if (audio.duration > 0) {
+                setProgress((audio.currentTime / audio.duration) * 100);
             }
-        };
+        });
 
-        initializeSpotify();
+        audio.addEventListener('ended', () => {
+            onNext(); // Auto-play next song when current ends
+        });
+
+        // Set initial volume
+        audio.volume = volume / 100;
 
         return () => {
-            if (player) {
-                player.disconnect();
-            }
-            if (progressInterval.current) {
-                clearInterval(progressInterval.current);
-            }
+            audio.pause();
+            audio.src = '';
         };
-    }, []);
+    }, [onNext]);
 
-    // Get Spotify token from server
-    const getSpotifyToken = async () => {
-        try {
-            const response = await fetch('/api/spotify-token');
-            const data = await response.json();
-            return data.token;
-        } catch (error) {
-            console.error('Failed to get Spotify token:', error);
-            return null;
-        }
-    };
+    // Handle song changes
+    useEffect(() => {
+        if (currentSong && currentSong.previewUrl) {
+            const audio = audioRef.current;
+            audio.src = currentSong.previewUrl;
+            audio.load();
 
-    // Play a song on Spotify
-    const playSongOnSpotify = async (song) => {
-        if (!player || !deviceId || !song.spotifyUrl) {
-            toast.error('Spotify not connected or song not available');
-            return;
-        }
-
-        try {
-            // Extract track ID from Spotify URL
-            const trackId = song.spotifyUrl.split('/track/')[1]?.split('?')[0];
-            if (!trackId) {
-                toast.error('Invalid Spotify track URL');
-                return;
+            if (isPlaying) {
+                audio.play().catch(error => {
+                    console.error('Failed to play audio:', error);
+                    toast.error('Failed to play audio preview');
+                });
             }
+        }
+    }, [currentSong]);
 
-            // Start playback
-            await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`, {
-                method: 'PUT',
-                body: JSON.stringify({ uris: [`spotify:track:${trackId}`] }),
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${await getSpotifyToken()}`
-                },
+    // Handle play/pause
+    useEffect(() => {
+        const audio = audioRef.current;
+        if (isPlaying && currentSong?.previewUrl) {
+            audio.play().catch(error => {
+                console.error('Failed to play audio:', error);
+                toast.error('Failed to play audio preview');
             });
-
-            toast.success(`Now playing: ${song.title}`);
-        } catch (error) {
-            console.error('Failed to play song:', error);
-            toast.error('Failed to play song on Spotify');
+        } else {
+            audio.pause();
         }
-    };
+    }, [isPlaying, currentSong]);
 
-    // Control playback
-    const togglePlayPause = async () => {
-        if (!player) {
-            toast.error('Spotify player not connected');
-            return;
-        }
+    // Handle volume changes
+    useEffect(() => {
+        const audio = audioRef.current;
+        audio.volume = isMuted ? 0 : volume / 100;
+    }, [volume, isMuted]);
 
-        try {
-            await player.togglePlay();
+    // Simple playback controls that work with the current setup
+    const handlePlayPause = () => {
+        if (currentSong) {
             onPlayPause();
-        } catch (error) {
-            console.error('Failed to toggle playback:', error);
-            toast.error('Failed to control playback');
+            if (isPlaying) {
+                toast.success('Paused');
+            } else {
+                toast.success(`Now playing: ${currentSong.title}`);
+            }
+        } else {
+            toast.error('No song selected');
         }
     };
 
-    const skipNext = async () => {
-        if (!player) return;
-        try {
-            await player.nextTrack();
+    const handleNext = () => {
+        if (currentSong) {
             onNext();
-        } catch (error) {
-            console.error('Failed to skip track:', error);
+            toast.success('Next track');
         }
     };
 
-    const skipPrevious = async () => {
-        if (!player) return;
-        try {
-            await player.previousTrack();
+    const handlePrevious = () => {
+        if (currentSong) {
             onPrevious();
-        } catch (error) {
-            console.error('Failed to skip track:', error);
+            toast.success('Previous track');
         }
     };
 
     const toggleMute = () => {
-        if (!player) return;
-        try {
-            if (isMuted) {
-                player.setVolume(volume / 100);
-                setIsMuted(false);
-            } else {
-                player.setVolume(0);
-                setIsMuted(true);
-            }
-        } catch (error) {
-            console.error('Failed to toggle mute:', error);
-        }
+        setIsMuted(!isMuted);
+        toast.success(isMuted ? 'Unmuted' : 'Muted');
     };
 
     const handleVolumeChange = (newVolume) => {
-        if (!player) return;
-        try {
-            setVolume(newVolume);
-            if (!isMuted) {
-                player.setVolume(newVolume / 100);
-            }
-        } catch (error) {
-            console.error('Failed to change volume:', error);
+        setVolume(newVolume);
+        if (!isMuted) {
+            toast.success(`Volume: ${newVolume}%`);
         }
     };
 
-    // Auto-play song when currentSong changes
-    useEffect(() => {
-        if (currentSong && isPlaying && isSpotifyConnected) {
-            playSongOnSpotify(currentSong);
+    const handleProgressClick = (e) => {
+        const audio = audioRef.current;
+        const rect = e.currentTarget.getBoundingClientRect();
+        const clickX = e.clientX - rect.left;
+        const width = rect.width;
+        const clickPercent = clickX / width;
+
+        if (audio.duration) {
+            audio.currentTime = clickPercent * audio.duration;
         }
-    }, [currentSong, isPlaying, isSpotifyConnected]);
+    };
+
+    const formatTime = (seconds) => {
+        if (!seconds || isNaN(seconds)) return '0:00';
+        const mins = Math.floor(seconds / 60);
+        const secs = Math.floor(seconds % 60);
+        return `${mins}:${secs.toString().padStart(2, '0')}`;
+    };
 
     return (
         <motion.div
@@ -244,7 +160,7 @@ const SpotifyPlayer = ({ currentSong, isPlaying, onPlayPause, onNext, onPrevious
                     </div>
                     <div>
                         <h4 style={{ margin: 0, fontSize: '1rem', fontWeight: '600' }}>
-                            {isSpotifyConnected ? 'Spotify Connected' : 'Connecting to Spotify...'}
+                            Music Player
                         </h4>
                         <p style={{ margin: 0, fontSize: '0.8rem', opacity: 0.8 }}>
                             {currentSong ? `${currentSong.title} - ${currentSong.artist}` : 'No song playing'}
@@ -291,27 +207,45 @@ const SpotifyPlayer = ({ currentSong, isPlaying, onPlayPause, onNext, onPrevious
                     background: 'rgba(255, 255, 255, 0.3)',
                     borderRadius: '2px',
                     overflow: 'hidden',
-                }}>
+                    cursor: 'pointer',
+                    position: 'relative',
+                }}
+                    onClick={handleProgressClick}
+                >
                     <motion.div
                         style={{
                             height: '100%',
                             background: 'white',
                             borderRadius: '2px',
                         }}
-                        initial={{ width: 0 }}
+                        initial={{ width: '0%' }}
                         animate={{ width: `${progress}%` }}
                         transition={{ duration: 0.1 }}
                     />
                 </div>
+                <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    fontSize: '0.8rem',
+                    marginTop: '4px',
+                    opacity: 0.8,
+                }}>
+                    <span>{formatTime(audioRef.current.currentTime)}</span>
+                    <span>{formatTime(duration)}</span>
+                </div>
             </div>
 
-            {/* Controls */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px' }}>
+            {/* Playback Controls */}
+            <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '16px',
+            }}>
                 <motion.button
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
-                    onClick={skipPrevious}
-                    disabled={!isSpotifyConnected}
+                    onClick={handlePrevious}
                     style={{
                         background: 'rgba(255, 255, 255, 0.2)',
                         border: 'none',
@@ -322,8 +256,7 @@ const SpotifyPlayer = ({ currentSong, isPlaying, onPlayPause, onNext, onPrevious
                         alignItems: 'center',
                         justifyContent: 'center',
                         color: 'white',
-                        cursor: isSpotifyConnected ? 'pointer' : 'not-allowed',
-                        opacity: isSpotifyConnected ? 1 : 0.5,
+                        cursor: 'pointer',
                     }}
                 >
                     <SkipBack size={20} />
@@ -332,10 +265,9 @@ const SpotifyPlayer = ({ currentSong, isPlaying, onPlayPause, onNext, onPrevious
                 <motion.button
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
-                    onClick={togglePlayPause}
-                    disabled={!isSpotifyConnected}
+                    onClick={handlePlayPause}
                     style={{
-                        background: 'white',
+                        background: 'rgba(255, 255, 255, 0.3)',
                         border: 'none',
                         borderRadius: '50%',
                         width: '60px',
@@ -343,9 +275,8 @@ const SpotifyPlayer = ({ currentSong, isPlaying, onPlayPause, onNext, onPrevious
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        color: '#1DB954',
-                        cursor: isSpotifyConnected ? 'pointer' : 'not-allowed',
-                        opacity: isSpotifyConnected ? 1 : 0.5,
+                        color: 'white',
+                        cursor: 'pointer',
                     }}
                 >
                     {isPlaying ? <Pause size={24} /> : <Play size={24} />}
@@ -354,8 +285,7 @@ const SpotifyPlayer = ({ currentSong, isPlaying, onPlayPause, onNext, onPrevious
                 <motion.button
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
-                    onClick={skipNext}
-                    disabled={!isSpotifyConnected}
+                    onClick={handleNext}
                     style={{
                         background: 'rgba(255, 255, 255, 0.2)',
                         border: 'none',
@@ -366,24 +296,57 @@ const SpotifyPlayer = ({ currentSong, isPlaying, onPlayPause, onNext, onPrevious
                         alignItems: 'center',
                         justifyContent: 'center',
                         color: 'white',
-                        cursor: isSpotifyConnected ? 'pointer' : 'not-allowed',
-                        opacity: isSpotifyConnected ? 1 : 0.5,
+                        cursor: 'pointer',
                     }}
                 >
                     <SkipForward size={20} />
                 </motion.button>
             </div>
 
-            {!isSpotifyConnected && (
+            {/* Song Info */}
+            {currentSong && (
                 <div style={{
-                    marginTop: '12px',
-                    padding: '8px',
+                    marginTop: '16px',
+                    textAlign: 'center',
+                    padding: '12px',
                     background: 'rgba(255, 255, 255, 0.1)',
                     borderRadius: '8px',
-                    fontSize: '0.8rem',
-                    textAlign: 'center',
                 }}>
-                    Please log in to Spotify Premium to enable playback
+                    <p style={{ margin: 0, fontSize: '0.9rem', fontWeight: '500' }}>
+                        {currentSong.title}
+                    </p>
+                    <p style={{ margin: '4px 0 0 0', fontSize: '0.8rem', opacity: 0.8 }}>
+                        {currentSong.artist} • {currentSong.duration}
+                    </p>
+                    {currentSong.spotifyUrl && (
+                        <a
+                            href={currentSong.spotifyUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                                display: 'inline-block',
+                                marginTop: '8px',
+                                padding: '6px 12px',
+                                background: 'rgba(255, 255, 255, 0.2)',
+                                color: 'white',
+                                textDecoration: 'none',
+                                borderRadius: '6px',
+                                fontSize: '0.8rem',
+                            }}
+                        >
+                            Open in Spotify
+                        </a>
+                    )}
+                    {!currentSong.previewUrl && (
+                        <p style={{
+                            margin: '8px 0 0 0',
+                            fontSize: '0.8rem',
+                            opacity: 0.7,
+                            fontStyle: 'italic',
+                        }}>
+                            No preview available - click "Open in Spotify" to play full song
+                        </p>
+                    )}
                 </div>
             )}
         </motion.div>

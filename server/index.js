@@ -48,7 +48,7 @@ app.use(cors({
   credentials: true
 }));
 app.use(express.json());
-app.use(express.static(path.join(__dirname, '../client/build')));
+// app.use(express.static(path.join(__dirname, '../client/build')));
 
 // In-memory storage for demo
 const users = new Map();
@@ -152,39 +152,39 @@ async function getAIPoweredRecommendations(mood, userPreferences = {}) {
 function getFallbackRecommendations(mood) {
   const recommendations = {
     happy: [
-      { id: 1, title: "Happy", artist: "Pharrell Williams", genre: "Pop", duration: "3:53", cover: "🎵" },
-      { id: 2, title: "Good Time", artist: "Owl City", genre: "Pop", duration: "3:26", cover: "🎵" },
-      { id: 3, title: "Walking on Sunshine", artist: "Katrina & The Waves", genre: "Rock", duration: "4:00", cover: "🎵" },
-      { id: 4, title: "I Gotta Feeling", artist: "The Black Eyed Peas", genre: "Pop", duration: "4:05", cover: "🎵" },
-      { id: 5, title: "Shake It Off", artist: "Taylor Swift", genre: "Pop", duration: "3:39", cover: "🎵" }
+      { id: 1, title: "Happy", artist: "Pharrell Williams", genre: "Pop", duration: "3:53", cover: "🎵", previewUrl: null },
+      { id: 2, title: "Good Time", artist: "Owl City", genre: "Pop", duration: "3:26", cover: "🎵", previewUrl: null },
+      { id: 3, title: "Walking on Sunshine", artist: "Katrina & The Waves", genre: "Rock", duration: "4:00", cover: "🎵", previewUrl: null },
+      { id: 4, title: "I Gotta Feeling", artist: "The Black Eyed Peas", genre: "Pop", duration: "4:05", cover: "🎵", previewUrl: null },
+      { id: 5, title: "Shake It Off", artist: "Taylor Swift", genre: "Pop", duration: "3:39", cover: "🎵", previewUrl: null }
     ],
     sad: [
-      { id: 6, title: "Mad World", artist: "Gary Jules", genre: "Alternative", duration: "3:09", cover: "🎵" },
-      { id: 7, title: "Hallelujah", artist: "Jeff Buckley", genre: "Folk", duration: "6:53", cover: "🎵" },
-      { id: 8, title: "Fix You", artist: "Coldplay", genre: "Alternative", duration: "4:55", cover: "🎵" },
-      { id: 9, title: "The Scientist", artist: "Coldplay", genre: "Alternative", duration: "5:09", cover: "🎵" },
-      { id: 10, title: "Skinny Love", artist: "Bon Iver", genre: "Indie", duration: "3:58", cover: "🎵" }
+      { id: 6, title: "Mad World", artist: "Gary Jules", genre: "Alternative", duration: "3:09", cover: "🎵", previewUrl: null },
+      { id: 7, title: "Hallelujah", artist: "Jeff Buckley", genre: "Folk", duration: "6:53", cover: "🎵", previewUrl: null },
+      { id: 8, title: "Fix You", artist: "Coldplay", genre: "Alternative", duration: "4:55", cover: "🎵", previewUrl: null },
+      { id: 9, title: "The Scientist", artist: "Coldplay", genre: "Alternative", duration: "5:09", cover: "🎵", previewUrl: null },
+      { id: 10, title: "Skinny Love", artist: "Bon Iver", genre: "Indie", duration: "3:58", cover: "🎵", previewUrl: null }
     ],
     angry: [
-      { id: 11, title: "In The End", artist: "Linkin Park", genre: "Rock", duration: "3:36", cover: "🎵" },
-      { id: 12, title: "Numb", artist: "Linkin Park", genre: "Rock", duration: "3:05", cover: "🎵" },
-      { id: 13, title: "Break Stuff", artist: "Limp Bizkit", genre: "Rock", duration: "2:46", cover: "🎵" },
-      { id: 14, title: "Given Up", artist: "Linkin Park", genre: "Rock", duration: "3:09", cover: "🎵" },
-      { id: 15, title: "Rollin'", artist: "Limp Bizkit", genre: "Rock", duration: "3:35", cover: "🎵" }
+      { id: 11, title: "In The End", artist: "Linkin Park", genre: "Rock", duration: "3:36", cover: "🎵", previewUrl: null },
+      { id: 12, title: "Numb", artist: "Linkin Park", genre: "Rock", duration: "3:05", cover: "🎵", previewUrl: null },
+      { id: 13, title: "Break Stuff", artist: "Limp Bizkit", genre: "Rock", duration: "2:46", cover: "🎵", previewUrl: null },
+      { id: 14, title: "Given Up", artist: "Linkin Park", genre: "Rock", duration: "3:09", cover: "🎵", previewUrl: null },
+      { id: 15, title: "Rollin'", artist: "Limp Bizkit", genre: "Rock", duration: "3:35", cover: "🎵", previewUrl: null }
     ],
     neutral: [
-      { id: 16, title: "Clocks", artist: "Coldplay", genre: "Alternative", duration: "5:07", cover: "🎵" },
-      { id: 17, title: "Yellow", artist: "Coldplay", genre: "Alternative", duration: "4:29", cover: "🎵" },
-      { id: 18, title: "Wonderwall", artist: "Oasis", genre: "Rock", duration: "4:18", cover: "🎵" },
-      { id: 19, title: "Creep", artist: "Radiohead", genre: "Alternative", duration: "4:19", cover: "🎵" },
-      { id: 20, title: "Boulevard of Broken Dreams", artist: "Green Day", genre: "Rock", duration: "4:20", cover: "🎵" }
+      { id: 16, title: "Clocks", artist: "Coldplay", genre: "Alternative", duration: "5:07", cover: "🎵", previewUrl: null },
+      { id: 17, title: "Yellow", artist: "Coldplay", genre: "Alternative", duration: "4:29", cover: "🎵", previewUrl: null },
+      { id: 18, title: "Wonderwall", artist: "Oasis", genre: "Rock", duration: "4:18", cover: "🎵", previewUrl: null },
+      { id: 19, title: "Creep", artist: "Radiohead", genre: "Alternative", duration: "4:19", cover: "🎵", previewUrl: null },
+      { id: 20, title: "Boulevard of Broken Dreams", artist: "Green Day", genre: "Rock", duration: "4:20", cover: "🎵", previewUrl: null }
     ],
     surprised: [
-      { id: 21, title: "Uptown Funk", artist: "Mark Ronson ft. Bruno Mars", genre: "Pop", duration: "3:57", cover: "🎵" },
-      { id: 22, title: "Can't Stop the Feeling!", artist: "Justin Timberlake", genre: "Pop", duration: "3:56", cover: "🎵" },
-      { id: 23, title: "Shake It Off", artist: "Taylor Swift", genre: "Pop", duration: "3:39", cover: "🎵" },
-      { id: 24, title: "Happy", artist: "Pharrell Williams", genre: "Pop", duration: "3:53", cover: "🎵" },
-      { id: 25, title: "Firework", artist: "Katy Perry", genre: "Pop", duration: "3:47", cover: "🎵" }
+      { id: 21, title: "Uptown Funk", artist: "Mark Ronson ft. Bruno Mars", genre: "Pop", duration: "3:57", cover: "🎵", previewUrl: null },
+      { id: 22, title: "Can't Stop the Feeling!", artist: "Justin Timberlake", genre: "Pop", duration: "3:56", cover: "🎵", previewUrl: null },
+      { id: 23, title: "Shake It Off", artist: "Taylor Swift", genre: "Pop", duration: "3:39", cover: "🎵", previewUrl: null },
+      { id: 24, title: "Happy", artist: "Pharrell Williams", genre: "Pop", duration: "3:53", cover: "🎵", previewUrl: null },
+      { id: 25, title: "Firework", artist: "Katy Perry", genre: "Pop", duration: "3:47", cover: "🎵", previewUrl: null }
     ]
   };
 
@@ -196,15 +196,35 @@ function getMoodBasedRecommendations(mood) {
   return getFallbackRecommendations(mood);
 }
 
-// Spotify authentication and search functions
+// Token caching
+let spotifyTokenCache = {
+  token: null,
+  expiresAt: 0
+};
+
 async function getSpotifyAccessToken() {
   try {
     if (!spotifyApi) return null;
 
+    // Check if we have a valid cached token
+    const now = Date.now();
+    if (spotifyTokenCache.token && spotifyTokenCache.expiresAt > now) {
+      return spotifyTokenCache.token;
+    }
+
     const data = await spotifyApi.clientCredentialsGrant();
-    spotifyApi.setAccessToken(data.body['access_token']);
-    console.log('🎵 Spotify access token obtained');
-    return data.body['access_token'];
+    const token = data.body['access_token'];
+    const expiresIn = data.body['expires_in'];
+
+    // Cache the token with expiration
+    spotifyTokenCache = {
+      token: token,
+      expiresAt: now + (expiresIn * 1000) - 60000 // Expire 1 minute early
+    };
+
+    spotifyApi.setAccessToken(token);
+    console.log('🎵 Spotify access token obtained (cached)');
+    return token;
   } catch (error) {
     console.error('Spotify authentication error:', error);
     return null;
@@ -665,38 +685,47 @@ app.post('/api/analyze-emotion-image', async (req, res) => {
         {
           role: "system",
           content: `You are an expert at analyzing human emotions from facial expressions. 
-          Analyze the provided image and determine the person's emotional state.
-          
-          Return your analysis as a JSON object with this exact format:
+          Your task is to analyze the provided image and determine the person's emotional state.
+
+          CRITICAL: You must respond with ONLY a valid JSON object. No other text, no explanations, no markdown formatting.
+
+          The JSON must have this exact structure:
           {
             "emotions": {
-              "happy": 0.0-1.0,
-              "sad": 0.0-1.0,
-              "angry": 0.0-1.0,
-              "fearful": 0.0-1.0,
-              "disgusted": 0.0-1.0,
-              "surprised": 0.0-1.0,
-              "neutral": 0.0-1.0
+              "happy": 0.0,
+              "sad": 0.0,
+              "angry": 0.0,
+              "fearful": 0.0,
+              "disgusted": 0.0,
+              "surprised": 0.0,
+              "neutral": 0.0
             },
             "dominant_emotion": "emotion_name",
-            "confidence": 0.0-1.0,
-            "description": "Brief description of what you observe in the facial expression"
+            "confidence": 0.0,
+            "description": "Brief description of what you observe"
           }
           
-          Be precise and accurate in your emotion detection. Consider subtle facial cues like:
-          - Eye expressions and gaze
+          Rules:
+          1. Respond with ONLY the JSON object, no other text
+          2. All emotion values should be between 0.0 and 1.0
+          3. The dominant_emotion should be one of: happy, sad, angry, fearful, disgusted, surprised, neutral
+          4. Confidence should be between 0.0 and 1.0
+          5. Total emotion values should sum to approximately 1.0
+          6. The dominant emotion should have the highest value
+
+          Analyze facial features like:
+          - Eye expressions and gaze direction
           - Mouth shape and position
           - Overall facial tension
           - Micro-expressions
-          
-          Ensure all emotion values sum to approximately 1.0, with the dominant emotion having the highest value.`
+          - Facial muscle activity`
         },
         {
           role: "user",
           content: [
             {
               type: "text",
-              text: "Please analyze the emotional state of the person in this image. Focus on their facial expression and provide detailed emotion analysis."
+              text: "Analyze the emotional state of the person in this image. Return ONLY a JSON object with the specified structure."
             },
             {
               type: "image_url",
@@ -708,8 +737,9 @@ app.post('/api/analyze-emotion-image', async (req, res) => {
           ]
         }
       ],
-      max_tokens: 500,
-      temperature: 0.1
+      max_tokens: 300,
+      temperature: 0.1,
+      response_format: { type: "json_object" }
     });
 
     const response = completion.choices[0].message.content;
@@ -717,32 +747,32 @@ app.post('/api/analyze-emotion-image', async (req, res) => {
     // Parse the JSON response
     let analysis;
     try {
-      // Clean the response to extract JSON
-      let cleanResponse = response.trim();
-
-      // Remove markdown code blocks if present
-      if (cleanResponse.startsWith('```json')) {
-        cleanResponse = cleanResponse.replace(/^```json\n/, '').replace(/\n```$/, '');
-      } else if (cleanResponse.startsWith('```')) {
-        cleanResponse = cleanResponse.replace(/^```\n/, '').replace(/\n```$/, '');
-      }
-
-      analysis = JSON.parse(cleanResponse);
+      analysis = JSON.parse(response);
     } catch (parseError) {
       console.error('Failed to parse AI response:', parseError);
+      console.error('Raw response:', response);
       return res.status(500).json({
         success: false,
-        error: 'Failed to parse AI analysis'
+        error: 'Failed to parse AI analysis - invalid JSON response'
       });
     }
 
     // Validate the analysis structure
-    if (!analysis.emotions || !analysis.dominant_emotion || !analysis.confidence) {
+    if (!analysis.emotions || !analysis.dominant_emotion || typeof analysis.confidence !== 'number') {
+      console.error('Invalid analysis structure:', analysis);
       return res.status(500).json({
         success: false,
         error: 'Invalid analysis structure from AI'
       });
     }
+
+    // Ensure dominant emotion is valid
+    const validEmotions = ['happy', 'sad', 'angry', 'fearful', 'disgusted', 'surprised', 'neutral'];
+    if (!validEmotions.includes(analysis.dominant_emotion)) {
+      analysis.dominant_emotion = 'neutral';
+    }
+
+    console.log('✅ OpenAI emotion analysis successful:', analysis.dominant_emotion, 'confidence:', analysis.confidence);
 
     res.json({
       success: true,
@@ -819,10 +849,10 @@ io.on('connection', (socket) => {
   });
 });
 
-// Serve React app
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../client/build/index.html'));
-});
+// Serve React app (commented out for development)
+// app.get('*', (req, res) => {
+//   res.sendFile(path.join(__dirname, '../client/build/index.html'));
+// });
 
 const PORT = process.env.PORT || 5001;
 server.listen(PORT, () => {

@@ -1,7 +1,7 @@
 import React, { useContext } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Music, Heart, User, Home, Camera } from 'lucide-react';
+import { Music, User, Home, Camera } from 'lucide-react';
 import { UserContext } from '../context/UserContext';
 
 const Header = () => {
@@ -92,7 +92,7 @@ const Header = () => {
                   }}
                 >
                   <Icon size={20} />
-                  <span style={{ display: 'none', '@media (min-width: 768px)': { display: 'block' } }}>
+                  <span style={{ display: 'none' }}>
                     {item.label}
                   </span>
                 </Link>
@@ -127,7 +127,6 @@ const Header = () => {
             color: 'white',
             fontWeight: '500',
             display: 'none',
-            '@media (min-width: 768px)': { display: 'block' },
           }}>
             {user.name}
           </span>
