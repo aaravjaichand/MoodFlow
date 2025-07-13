@@ -15,9 +15,8 @@ const Profile = () => {
   const [moodHistory, setMoodHistory] = useState([]);
   const [loading, setLoading] = useState(true);
 
-<<<<<<< HEAD
   // Use user context data for stats
-  const stats = {
+  const statsData = {
     totalPlaylists: user.totalPlaylists || 0,
     recommendationsCount: user.recommendationsCount || 0,
     totalLikes: user.totalLikes || 0,
@@ -28,21 +27,7 @@ const Profile = () => {
     recentActivity: user.recentActivity || []
   };
 
-  const moodHistory = user.moodHistory || [];
-=======
-  // Use user context data for stats
-  const stats = {
-    totalPlaylists: user.totalPlaylists || 0,
-    recommendationsCount: user.recommendationsCount || 0,
-    totalLikes: user.totalLikes || 0,
-    favoriteMood: user.favoriteMood || 'happy',
-    averageMood: user.averageMood || 'positive',
-    weeklyStreak: user.dayStreak || 0,
-    topGenres: user.topGenres || user.favoriteGenres || [],
-    recentActivity: user.recentActivity || []
-  };
-
-  const moodHistory = user.moodHistory || [];
+  const moodHistoryData = user.moodHistory || [];
 
   const getMoodColor = (mood) => {
     const colors = {
@@ -94,7 +79,7 @@ const Profile = () => {
     setIsEditing(false);
   };
 
-  if (loading || !stats) {
+  if (loading || !statsData) {
     return <div style={{ color: 'white', textAlign: 'center', marginTop: '48px' }}>Loading profile...</div>;
   }
 
@@ -246,7 +231,7 @@ const Profile = () => {
                     color: 'white',
                     marginBottom: '4px',
                   }}>
-                    {stats.totalPlaylists}
+                    {statsData.totalPlaylists}
                   </div>
                   <div style={{
                     fontSize: '0.8rem',
@@ -262,7 +247,7 @@ const Profile = () => {
                     color: 'white',
                     marginBottom: '4px',
                   }}>
-                    {stats.totalLikes}
+                    {statsData.totalLikes}
                   </div>
                   <div style={{
                     fontSize: '0.8rem',
@@ -311,7 +296,7 @@ const Profile = () => {
                   color: 'white',
                   marginBottom: '4px',
                 }}>
-                  {stats.recommendationsCount}
+                  {statsData.recommendationsCount}
                 </div>
                 <div style={{
                   fontSize: '0.9rem',
@@ -340,7 +325,7 @@ const Profile = () => {
                   color: 'white',
                   marginBottom: '4px',
                 }}>
-                  {stats.weeklyStreak}
+                  {statsData.weeklyStreak}
                 </div>
                 <div style={{
                   fontSize: '0.9rem',
@@ -375,7 +360,7 @@ const Profile = () => {
                 height: '120px',
                 padding: '16px 0',
               }}>
-                {(moodHistory || []).map((day, index) => (
+                {(moodHistoryData || []).map((day, index) => (
                   <div key={index} style={{ flex: 1, textAlign: 'center' }}>
                     <div style={{
                       height: `${day.intensity}%`,
@@ -421,7 +406,7 @@ const Profile = () => {
                 flexDirection: 'column',
                 gap: '12px',
               }}>
-                {(stats.recentActivity || []).map((activity, index) => (
+                {(statsData.recentActivity || []).map((activity, index) => (
                   <div key={index} style={{
                     display: 'flex',
                     alignItems: 'center',
@@ -490,7 +475,7 @@ const Profile = () => {
                 gap: '12px',
                 flexWrap: 'wrap',
               }}>
-                {(stats.topGenres || []).map((genre, index) => (
+                {(statsData.topGenres || []).map((genre, index) => (
                   <motion.div
                     key={genre}
                     whileHover={{ scale: 1.05 }}
