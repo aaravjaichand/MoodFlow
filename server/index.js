@@ -8,6 +8,11 @@ const { v4: uuidv4 } = require('uuid');
 const OpenAI = require('openai');
 const SpotifyWebApi = require('spotify-web-api-node');
 require('dotenv').config();
+console.log('CWD:', process.cwd());
+const dotenv = require('dotenv');
+const result = dotenv.config();
+console.log('dotenv result:', result);
+console.log('ALL ENV:', process.env);
 
 const app = express();
 const server = http.createServer(app);
@@ -22,12 +27,13 @@ const io = socketIo(server, {
 let openai = null;
 if (process.env.OPENAI_API_KEY) {
   openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
+    apiKey: process.env.OPENAI_API_KEY
   });
   console.log('🤖 OpenAI API initialized');
 } else {
   console.log('⚠️  OpenAI API key not found - using fallback recommendations');
 }
+
 
 // Initialize Spotify Web API (Client Credentials flow - no redirect URI needed)
 let spotifyApi = null;
@@ -148,47 +154,9 @@ async function getAIPoweredRecommendations(mood, userPreferences = {}) {
   }
 }
 
-// Fallback recommendations (original hardcoded data)
+// GPT-4o powered recommendations only - no fallbacks
 function getFallbackRecommendations(mood) {
-  const recommendations = {
-    happy: [
-      { id: 1, title: "Happy", artist: "Pharrell Williams", genre: "Pop", duration: "3:53", cover: "🎵", previewUrl: null },
-      { id: 2, title: "Good Time", artist: "Owl City", genre: "Pop", duration: "3:26", cover: "🎵", previewUrl: null },
-      { id: 3, title: "Walking on Sunshine", artist: "Katrina & The Waves", genre: "Rock", duration: "4:00", cover: "🎵", previewUrl: null },
-      { id: 4, title: "I Gotta Feeling", artist: "The Black Eyed Peas", genre: "Pop", duration: "4:05", cover: "🎵", previewUrl: null },
-      { id: 5, title: "Shake It Off", artist: "Taylor Swift", genre: "Pop", duration: "3:39", cover: "🎵", previewUrl: null }
-    ],
-    sad: [
-      { id: 6, title: "Mad World", artist: "Gary Jules", genre: "Alternative", duration: "3:09", cover: "🎵", previewUrl: null },
-      { id: 7, title: "Hallelujah", artist: "Jeff Buckley", genre: "Folk", duration: "6:53", cover: "🎵", previewUrl: null },
-      { id: 8, title: "Fix You", artist: "Coldplay", genre: "Alternative", duration: "4:55", cover: "🎵", previewUrl: null },
-      { id: 9, title: "The Scientist", artist: "Coldplay", genre: "Alternative", duration: "5:09", cover: "🎵", previewUrl: null },
-      { id: 10, title: "Skinny Love", artist: "Bon Iver", genre: "Indie", duration: "3:58", cover: "🎵", previewUrl: null }
-    ],
-    angry: [
-      { id: 11, title: "In The End", artist: "Linkin Park", genre: "Rock", duration: "3:36", cover: "🎵", previewUrl: null },
-      { id: 12, title: "Numb", artist: "Linkin Park", genre: "Rock", duration: "3:05", cover: "🎵", previewUrl: null },
-      { id: 13, title: "Break Stuff", artist: "Limp Bizkit", genre: "Rock", duration: "2:46", cover: "🎵", previewUrl: null },
-      { id: 14, title: "Given Up", artist: "Linkin Park", genre: "Rock", duration: "3:09", cover: "🎵", previewUrl: null },
-      { id: 15, title: "Rollin'", artist: "Limp Bizkit", genre: "Rock", duration: "3:35", cover: "🎵", previewUrl: null }
-    ],
-    neutral: [
-      { id: 16, title: "Clocks", artist: "Coldplay", genre: "Alternative", duration: "5:07", cover: "🎵", previewUrl: null },
-      { id: 17, title: "Yellow", artist: "Coldplay", genre: "Alternative", duration: "4:29", cover: "🎵", previewUrl: null },
-      { id: 18, title: "Wonderwall", artist: "Oasis", genre: "Rock", duration: "4:18", cover: "🎵", previewUrl: null },
-      { id: 19, title: "Creep", artist: "Radiohead", genre: "Alternative", duration: "4:19", cover: "🎵", previewUrl: null },
-      { id: 20, title: "Boulevard of Broken Dreams", artist: "Green Day", genre: "Rock", duration: "4:20", cover: "🎵", previewUrl: null }
-    ],
-    surprised: [
-      { id: 21, title: "Uptown Funk", artist: "Mark Ronson ft. Bruno Mars", genre: "Pop", duration: "3:57", cover: "🎵", previewUrl: null },
-      { id: 22, title: "Can't Stop the Feeling!", artist: "Justin Timberlake", genre: "Pop", duration: "3:56", cover: "🎵", previewUrl: null },
-      { id: 23, title: "Shake It Off", artist: "Taylor Swift", genre: "Pop", duration: "3:39", cover: "🎵", previewUrl: null },
-      { id: 24, title: "Happy", artist: "Pharrell Williams", genre: "Pop", duration: "3:53", cover: "🎵", previewUrl: null },
-      { id: 25, title: "Firework", artist: "Katy Perry", genre: "Pop", duration: "3:47", cover: "🎵", previewUrl: null }
-    ]
-  };
-
-  return recommendations[mood] || recommendations.neutral;
+  throw new Error('Fallback recommendations disabled - GPT-4o is required for all recommendations');
 }
 
 // Legacy function for backward compatibility
@@ -349,9 +317,7 @@ async function getSpotifyAIPoweredRecommendations(mood, userPreferences = {}) {
 
   } catch (error) {
     console.error('Spotify AI recommendations error:', error);
-
-    // Fallback to basic Spotify search
-    return await getBasicSpotifyRecommendations(mood, userPreferences);
+    throw new Error('GPT-4o Spotify recommendations failed: ' + error.message);
   }
 }
 
@@ -387,26 +353,18 @@ app.post('/api/analyze-mood', async (req, res) => {
     const { emotionData, userPreferences = {} } = req.body;
     const moodAnalysis = analyzeMood(emotionData);
 
-    // Use Spotify AI-powered recommendations if both OpenAI and Spotify are available
+    // Force AI-powered recommendations using GPT-4o
     let recommendations;
-    let aiPowered = false;
+    let aiPowered = true;
     let spotifyPowered = false;
 
     if (openai && spotifyApi) {
       recommendations = await getSpotifyAIPoweredRecommendations(moodAnalysis.dominant, userPreferences);
-      aiPowered = true;
-      spotifyPowered = true;
-    } else if (spotifyApi) {
-      // Use basic Spotify recommendations
-      recommendations = await getBasicSpotifyRecommendations(moodAnalysis.dominant, userPreferences);
       spotifyPowered = true;
     } else if (openai) {
-      // Use AI recommendations without Spotify
       recommendations = await getAIPoweredRecommendations(moodAnalysis.dominant, userPreferences);
-      aiPowered = true;
     } else {
-      // Fallback to hardcoded recommendations
-      recommendations = getFallbackRecommendations(moodAnalysis.dominant);
+      throw new Error('OpenAI API not available - GPT-4o is required for recommendations');
     }
 
     res.json({
@@ -419,7 +377,11 @@ app.post('/api/analyze-mood', async (req, res) => {
     });
   } catch (error) {
     console.error('Error in analyze-mood:', error);
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      message: 'GPT-4o is required for all recommendations. Please ensure OpenAI API is properly configured.'
+    });
   }
 });
 
@@ -526,7 +488,7 @@ app.get('/api/spotify-login', (req, res) => {
   ];
 
   const state = uuidv4();
-  const authorizeURL = `https://accounts.spotify.com/authorize?client_id=${process.env.SPOTIFY_CLIENT_ID}&response_type=code&redirect_uri=${encodeURIComponent(process.env.SPOTIFY_REDIRECT_URI)}&state=${state}&scope=${encodeURIComponent(scopes.join(' '))}`;
+  const authorizeURL = `https://accounts.spotify.com/authorize?client_id=${process.env.SPOTIFY_CLIENT_ID}&response_type=code&redirect_uri=${encodeURIComponent(process.env.SPOTIFY_REDIRECT_URI || 'http://localhost:3000/callback')}&state=${state}&scope=${encodeURIComponent(scopes.join(' '))}`;
 
   res.json({
     success: true,
@@ -555,7 +517,7 @@ app.get('/api/spotify-callback', async (req, res) => {
       body: new URLSearchParams({
         grant_type: 'authorization_code',
         code: code,
-        redirect_uri: process.env.SPOTIFY_REDIRECT_URI
+        redirect_uri: process.env.SPOTIFY_REDIRECT_URI || 'http://localhost:3000/callback'
       })
     });
 
@@ -665,7 +627,7 @@ app.post('/api/analyze-emotion-image', async (req, res) => {
     if (!openai) {
       return res.status(400).json({
         success: false,
-        error: 'OpenAI API not configured'
+        error: 'OpenAI API not configured - GPT-4o is required for emotion analysis'
       });
     }
 
@@ -789,7 +751,8 @@ app.post('/api/analyze-emotion-image', async (req, res) => {
     console.error('Image analysis error:', error);
     res.status(500).json({
       success: false,
-      error: error.message
+      error: error.message,
+      message: 'GPT-4o emotion analysis failed. Please ensure OpenAI API is properly configured and try again.'
     });
   }
 });
@@ -802,23 +765,18 @@ io.on('connection', (socket) => {
     try {
       const moodAnalysis = analyzeMood(data.emotionData);
 
-      // Use AI-powered recommendations if OpenAI API key is available
+      // Force AI-powered recommendations using GPT-4o
       let recommendations;
-      let aiPowered = false;
+      let aiPowered = true;
       let spotifyPowered = false;
 
       if (openai && spotifyApi) {
         recommendations = await getSpotifyAIPoweredRecommendations(moodAnalysis.dominant, data.userPreferences || {});
-        aiPowered = true;
-        spotifyPowered = true;
-      } else if (spotifyApi) {
-        recommendations = await getBasicSpotifyRecommendations(moodAnalysis.dominant, data.userPreferences || {});
         spotifyPowered = true;
       } else if (openai) {
         recommendations = await getAIPoweredRecommendations(moodAnalysis.dominant, data.userPreferences || {});
-        aiPowered = true;
       } else {
-        recommendations = getFallbackRecommendations(moodAnalysis.dominant);
+        throw new Error('OpenAI API not available - GPT-4o is required for recommendations');
       }
 
       socket.emit('mood-analyzed', {
@@ -829,11 +787,8 @@ io.on('connection', (socket) => {
       });
     } catch (error) {
       console.error('Socket mood-update error:', error);
-      // Fallback to basic recommendations on error
-      const moodAnalysis = analyzeMood(data.emotionData);
       socket.emit('mood-analyzed', {
-        mood: moodAnalysis,
-        recommendations: getFallbackRecommendations(moodAnalysis.dominant),
+        error: 'Failed to get AI-powered recommendations. Please ensure OpenAI API is configured.',
         aiPowered: false,
         spotifyPowered: false
       });

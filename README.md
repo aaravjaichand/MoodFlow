@@ -136,6 +136,38 @@ MoodFlow is an innovative AI-powered music discovery platform that analyzes user
 - CORS configuration for cross-origin requests
 - Rate limiting to prevent abuse
 
+## Setup and Installation
+
+### Prerequisites
+- Node.js (v18 or higher)
+- npm or yarn package manager
+
+### Environment Variables
+Create a `.env` file in the root directory with the following variables:
+
+```env
+# OpenAI API Key (required for emotion analysis)
+OPENAI_API_KEY=your_openai_api_key_here
+
+# Spotify API Credentials (required for song data)
+SPOTIFY_CLIENT_ID=your_spotify_client_id_here
+SPOTIFY_CLIENT_SECRET=your_spotify_client_secret_here
+SPOTIFY_REDIRECT_URI=http://localhost:3000/callback
+
+# Server Configuration
+PORT=5001
+```
+
+### Installation Steps
+1. Clone the repository
+2. Install dependencies: `npm install && cd client && npm install`
+3. Copy `.env.example` to `.env` and fill in your API keys
+4. Start the development server: `npm run dev`
+
+### API Setup
+- **OpenAI**: Get an API key from [OpenAI Platform](https://platform.openai.com/api-keys)
+- **Spotify**: Create an application in [Spotify Developer Dashboard](https://developer.spotify.com/dashboard)
+
 ## Development and Deployment
 
 The application is built with modern web technologies and follows industry best practices for development, testing, and deployment. The modular architecture allows for easy maintenance and feature additions while maintaining high performance and reliability standards.

@@ -3,8 +3,112 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Camera, Music, Heart, Zap, Users, TrendingUp } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useState } from 'react';
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
 
-const Home = () => {
+const Home = ({ user }) => {
+  const [isLogin, setIsLogin] = useState(true);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const auth = getAuth();
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    try {
+      if (isLogin) {
+        await signInWithEmailAndPassword(auth, email, password);
+      } else {
+        await createUserWithEmailAndPassword(auth, email, password);
+      }
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  if (!user) {
+    return (
+      <div className="auth-container">
+        <form className="auth-form" onSubmit={handleSubmit}>
+          <h2>{isLogin ? 'Login' : 'Sign Up'}</h2>
+          <input
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            required
+          />
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            required
+          />
+          {error && <div className="auth-error">{error}</div>}
+          <button type="submit">{isLogin ? 'Login' : 'Sign Up'}</button>
+          <p style={{ marginTop: '10px' }}>
+            {isLogin ? 'No account?' : 'Already have an account?'}{' '}
+            <span
+              style={{ color: '#667eea', cursor: 'pointer' }}
+              onClick={() => setIsLogin(!isLogin)}
+            >
+              {isLogin ? 'Sign Up' : 'Login'}
+            </span>
+          </p>
+        </form>
+        <style>{`
+          .auth-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          }
+          .auth-form {
+            background: white;
+            padding: 32px 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+            display: flex;
+            flex-direction: column;
+            min-width: 320px;
+          }
+          .auth-form h2 {
+            margin-bottom: 18px;
+            color: #764ba2;
+          }
+          .auth-form input {
+            margin-bottom: 14px;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1rem;
+          }
+          .auth-form button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-top: 8px;
+          }
+          .auth-form button:hover {
+            background: #764ba2;
+          }
+          .auth-error {
+            color: #fa709a;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+          }
+        `}</style>
+      </div>
+    );
+  }
+
   const features = [
     {
       icon: Camera,
@@ -42,13 +146,6 @@ const Home = () => {
       description: 'Track your mood patterns and music listening habits',
       color: '#fa709a'
     }
-  ];
-
-  const stats = [
-    { number: '10K+', label: 'Active Users' },
-    { number: '50K+', label: 'Playlists Created' },
-    { number: '1M+', label: 'Songs Analyzed' },
-    { number: '95%', label: 'Accuracy Rate' }
   ];
 
   return (
@@ -135,53 +232,6 @@ const Home = () => {
             Try Demo
           </motion.button>
         </motion.div>
-      </motion.section>
-
-      {/* Stats Section */}
-      <motion.section
-        initial={{ opacity: 0, y: 50 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.8, duration: 0.8 }}
-        style={{
-          maxWidth: '1200px',
-          margin: '0 auto 80px',
-          padding: '0 20px',
-        }}
-      >
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-          gap: '24px',
-        }}>
-          {stats.map((stat, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.8 + index * 0.1, duration: 0.5 }}
-              className="card"
-              style={{ textAlign: 'center' }}
-            >
-              <div style={{
-                fontSize: '2.5rem',
-                fontWeight: '800',
-                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                marginBottom: '8px',
-              }}>
-                {stat.number}
-              </div>
-              <div style={{
-                color: 'rgba(255, 255, 255, 0.8)',
-                fontSize: '1rem',
-                fontWeight: '500',
-              }}>
-                {stat.label}
-              </div>
-            </motion.div>
-          ))}
-        </div>
       </motion.section>
 
       {/* Features Section */}

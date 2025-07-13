@@ -1,42 +1,69 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { User, Settings, BarChart3, Music, Heart, Calendar, TrendingUp, Edit3, Save, Camera } from 'lucide-react';
 import { UserContext } from '../context/UserContext';
 import toast from 'react-hot-toast';
+import { ref, get, set, update } from 'firebase/database';
+import { db } from '../firebase';
 
 const Profile = () => {
   const { user, setUser } = useContext(UserContext);
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(user.name);
   const [editAvatar, setEditAvatar] = useState(user.avatar);
+  const [stats, setStats] = useState(null);
+  const [moodHistory, setMoodHistory] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Mock data for demo
-  const stats = {
-    totalPlaylists: 12,
-    totalSongs: 156,
-    totalLikes: 89,
-    favoriteMood: 'happy',
-    averageMood: 'positive',
-    weeklyStreak: 7,
-    totalListeningTime: '24h 32m',
-    topGenres: ['Pop', 'Rock', 'Alternative'],
-    recentActivity: [
-      { type: 'playlist_created', title: 'Happy Vibes', time: '2 hours ago' },
-      { type: 'song_liked', title: 'Walking on Sunshine', time: '4 hours ago' },
-      { type: 'mood_analyzed', mood: 'happy', time: '6 hours ago' },
-      { type: 'playlist_shared', title: 'Chill Beats', time: '1 day ago' },
-    ]
-  };
-
-  const moodHistory = [
-    { date: 'Mon', mood: 'happy', intensity: 85 },
-    { date: 'Tue', mood: 'sad', intensity: 45 },
-    { date: 'Wed', mood: 'happy', intensity: 92 },
-    { date: 'Thu', mood: 'neutral', intensity: 60 },
-    { date: 'Fri', mood: 'happy', intensity: 78 },
-    { date: 'Sat', mood: 'surprised', intensity: 88 },
-    { date: 'Sun', mood: 'happy', intensity: 95 },
-  ];
+  useEffect(() => {
+    // Fetch user profile and stats from Firebase
+    const fetchUserData = async () => {
+      setLoading(true);
+      try {
+        const userRef = ref(db, `users/${user.id}`);
+        const snapshot = await get(userRef);
+        if (snapshot.exists()) {
+          const data = snapshot.val();
+          setUser(prev => ({ ...prev, ...data.profile }));
+          setStats(data.stats || {});
+          setMoodHistory(data.moodHistory || []);
+        } else {
+          // Create default data if not present
+          const defaultProfile = {
+            name: user.name || 'Music Lover',
+            avatar: user.avatar || '👤',
+            email: user.email || '',
+          };
+          const defaultStats = {
+            totalPlaylists: 0,
+            totalSongs: 0,
+            totalLikes: 0,
+            favoriteMood: '',
+            averageMood: '',
+            weeklyStreak: 0,
+            totalListeningTime: '0h 0m',
+            topGenres: [],
+            recentActivity: []
+          };
+          const defaultMoodHistory = [];
+          await set(userRef, {
+            profile: defaultProfile,
+            stats: defaultStats,
+            moodHistory: defaultMoodHistory
+          });
+          setUser(prev => ({ ...prev, ...defaultProfile }));
+          setStats(defaultStats);
+          setMoodHistory(defaultMoodHistory);
+        }
+      } catch (err) {
+        console.error('Profile load error:', err);
+        toast.error('Failed to load profile data.');
+      }
+      setLoading(false);
+    };
+    fetchUserData();
+    // eslint-disable-next-line
+  }, [user.id]);
 
   const getMoodColor = (mood) => {
     const colors = {
@@ -60,14 +87,26 @@ const Profile = () => {
     return emojis[mood] || '😐';
   };
 
-  const saveProfile = () => {
-    setUser(prev => ({
-      ...prev,
-      name: editName,
-      avatar: editAvatar
-    }));
-    setIsEditing(false);
-    toast.success('Profile updated successfully! ✨');
+  const saveProfile = async () => {
+    try {
+      const userRef = ref(db, `users/${user.id}`);
+      await update(userRef, {
+        profile: {
+          name: editName,
+          avatar: editAvatar,
+          email: user.email,
+        }
+      });
+      setUser(prev => ({
+        ...prev,
+        name: editName,
+        avatar: editAvatar
+      }));
+      setIsEditing(false);
+      toast.success('Profile updated successfully! ✨');
+    } catch (err) {
+      toast.error('Failed to update profile.');
+    }
   };
 
   const cancelEdit = () => {
@@ -75,6 +114,10 @@ const Profile = () => {
     setEditAvatar(user.avatar);
     setIsEditing(false);
   };
+
+  if (loading || !stats) {
+    return <div style={{ color: 'white', textAlign: 'center', marginTop: '48px' }}>Loading profile...</div>;
+  }
 
   return (
     <div style={{ minHeight: '100vh', padding: '24px' }}>
@@ -379,7 +422,7 @@ const Profile = () => {
                 height: '120px',
                 padding: '16px 0',
               }}>
-                {moodHistory.map((day, index) => (
+                {(moodHistory || []).map((day, index) => (
                   <div key={index} style={{ flex: 1, textAlign: 'center' }}>
                     <div style={{
                       height: `${day.intensity}%`,
@@ -425,7 +468,7 @@ const Profile = () => {
                 flexDirection: 'column',
                 gap: '12px',
               }}>
-                {stats.recentActivity.map((activity, index) => (
+                {(stats.recentActivity || []).map((activity, index) => (
                   <div key={index} style={{
                     display: 'flex',
                     alignItems: 'center',
@@ -494,7 +537,7 @@ const Profile = () => {
                 gap: '12px',
                 flexWrap: 'wrap',
               }}>
-                {stats.topGenres.map((genre, index) => (
+                {(stats.topGenres || []).map((genre, index) => (
                   <motion.div
                     key={genre}
                     whileHover={{ scale: 1.05 }}
