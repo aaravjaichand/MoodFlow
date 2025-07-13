@@ -1,12 +1,16 @@
 import React, { useContext } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Music, User, Home, Camera } from 'lucide-react';
+import { Music, User, Home, Camera, LogOut } from 'lucide-react';
 import { UserContext } from '../context/UserContext';
+import { useAuth } from '../context/AuthContext';
+import toast from 'react-hot-toast';
 
 const Header = () => {
   const { user } = useContext(UserContext);
+  const { currentUser, logout } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
 
   const navItems = [
     { path: '/', label: 'Home', icon: Home },
@@ -121,15 +125,43 @@ const Header = () => {
             color: 'white',
             fontWeight: '600',
           }}>
-            {user.name.charAt(0).toUpperCase()}
+            {currentUser?.displayName?.charAt(0)?.toUpperCase() || user.name.charAt(0).toUpperCase()}
           </div>
           <span style={{
             color: 'white',
             fontWeight: '500',
             display: 'none',
           }}>
-            {user.name}
+            {currentUser?.displayName || user.name}
           </span>
+
+          {/* Logout Button */}
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={async () => {
+              try {
+                await logout();
+                toast.success('Logged out successfully');
+                navigate('/login');
+              } catch (error) {
+                toast.error('Failed to logout');
+              }
+            }}
+            style={{
+              background: 'rgba(255, 255, 255, 0.1)',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              borderRadius: '8px',
+              padding: '8px',
+              color: 'white',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <LogOut size={16} />
+          </motion.button>
         </motion.div>
       </div>
     </motion.header>

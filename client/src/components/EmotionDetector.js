@@ -4,6 +4,7 @@ import Webcam from 'react-webcam';
 import { Brain } from 'lucide-react';
 import toast from 'react-hot-toast';
 import axios from 'axios';
+import { API_BASE_URL, API_ENDPOINTS } from '../config/api';
 
 const EmotionDetector = ({ onEmotionDetected, isAnalyzing, onAnalysisComplete }) => {
     const [isAnalyzingWithAI, setIsAnalyzingWithAI] = useState(false);
@@ -23,7 +24,7 @@ const EmotionDetector = ({ onEmotionDetected, isAnalyzing, onAnalysisComplete })
             }
 
             // Send to GPT-4o for analysis
-            const response = await axios.post('http://localhost:5001/api/analyze-emotion-image', {
+            const response = await axios.post(`${API_BASE_URL}${API_ENDPOINTS.ANALYZE_EMOTION}`, {
                 image: snapshot,
                 timestamp: new Date().toISOString()
             });

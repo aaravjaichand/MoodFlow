@@ -138,6 +138,46 @@ MoodFlow is an innovative AI-powered music discovery platform that analyzes user
 
 ## Development and Deployment
 
+### Local Development
+
+1. Clone the repository:
+   ```bash
+   git clone <repository-url>
+   cd hackathon
+   ```
+
+2. Install dependencies:
+   ```bash
+   npm install
+   cd client && npm install
+   ```
+
+3. Set up environment variables:
+   - Create a `.env` file in the client directory
+   - Add your API keys (see DEPLOYMENT.md for details)
+
+4. Start the development server:
+   ```bash
+   npm run dev
+   ```
+
+### Vercel Deployment
+
+This project is configured for easy deployment on Vercel. See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed deployment instructions.
+
+**Quick Deploy:**
+1. Push your code to GitHub
+2. Connect your repository to Vercel
+3. Set up environment variables in Vercel dashboard
+4. Deploy with one click
+
+### Environment Variables
+
+Required for full functionality:
+- `OPENAI_API_KEY` - For AI-powered emotion analysis and recommendations
+- `SPOTIFY_CLIENT_ID` & `SPOTIFY_CLIENT_SECRET` - For music recommendations
+- Firebase configuration (optional) - For user authentication
+
 The application is built with modern web technologies and follows industry best practices for development, testing, and deployment. The modular architecture allows for easy maintenance and feature additions while maintaining high performance and reliability standards.
 
 MoodFlow represents a sophisticated integration of AI technology, music streaming services, and modern web development practices to create a unique emotion-driven music discovery experience. 

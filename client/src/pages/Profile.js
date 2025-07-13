@@ -10,33 +10,19 @@ const Profile = () => {
   const [editName, setEditName] = useState(user.name);
   const [editAvatar, setEditAvatar] = useState(user.avatar);
 
-  // Mock data for demo
+  // Use user context data for stats
   const stats = {
-    totalPlaylists: 12,
-    totalSongs: 156,
-    totalLikes: 89,
-    favoriteMood: 'happy',
-    averageMood: 'positive',
-    weeklyStreak: 7,
-    totalListeningTime: '24h 32m',
-    topGenres: ['Pop', 'Rock', 'Alternative'],
-    recentActivity: [
-      { type: 'playlist_created', title: 'Happy Vibes', time: '2 hours ago' },
-      { type: 'song_liked', title: 'Walking on Sunshine', time: '4 hours ago' },
-      { type: 'mood_analyzed', mood: 'happy', time: '6 hours ago' },
-      { type: 'playlist_shared', title: 'Chill Beats', time: '1 day ago' },
-    ]
+    totalPlaylists: user.totalPlaylists || 0,
+    recommendationsCount: user.recommendationsCount || 0,
+    totalLikes: user.totalLikes || 0,
+    favoriteMood: user.favoriteMood || 'happy',
+    averageMood: user.averageMood || 'positive',
+    weeklyStreak: user.dayStreak || 0,
+    topGenres: user.topGenres || user.favoriteGenres || [],
+    recentActivity: user.recentActivity || []
   };
 
-  const moodHistory = [
-    { date: 'Mon', mood: 'happy', intensity: 85 },
-    { date: 'Tue', mood: 'sad', intensity: 45 },
-    { date: 'Wed', mood: 'happy', intensity: 92 },
-    { date: 'Thu', mood: 'neutral', intensity: 60 },
-    { date: 'Fri', mood: 'happy', intensity: 78 },
-    { date: 'Sat', mood: 'surprised', intensity: 88 },
-    { date: 'Sun', mood: 'happy', intensity: 95 },
-  ];
+  const moodHistory = user.moodHistory || [];
 
   const getMoodColor = (mood) => {
     const colors = {
@@ -251,6 +237,7 @@ const Profile = () => {
                 </div>
               </div>
             </div>
+
           </motion.div>
 
           {/* Analytics */}
@@ -288,13 +275,13 @@ const Profile = () => {
                   color: 'white',
                   marginBottom: '4px',
                 }}>
-                  {stats.totalSongs}
+                  {stats.recommendationsCount}
                 </div>
                 <div style={{
                   fontSize: '0.9rem',
                   color: 'rgba(255, 255, 255, 0.7)',
                 }}>
-                  Songs Listened
+                  Number of Recommendations with MoodFlow
                 </div>
               </div>
 
@@ -327,34 +314,7 @@ const Profile = () => {
                 </div>
               </div>
 
-              <div className="card" style={{ textAlign: 'center' }}>
-                <div style={{
-                  width: '50px',
-                  height: '50px',
-                  borderRadius: '12px',
-                  background: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  margin: '0 auto 12px',
-                }}>
-                  <Calendar size={24} color="white" />
-                </div>
-                <div style={{
-                  fontSize: '1.5rem',
-                  fontWeight: '700',
-                  color: 'white',
-                  marginBottom: '4px',
-                }}>
-                  {stats.totalListeningTime}
-                </div>
-                <div style={{
-                  fontSize: '0.9rem',
-                  color: 'rgba(255, 255, 255, 0.7)',
-                }}>
-                  Listening Time
-                </div>
-              </div>
+              {/* Removed Listening Time card */}
             </div>
 
             {/* Mood History Chart */}
