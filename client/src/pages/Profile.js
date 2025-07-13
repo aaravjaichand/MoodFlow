@@ -15,55 +15,34 @@ const Profile = () => {
   const [moodHistory, setMoodHistory] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    // Fetch user profile and stats from Firebase
-    const fetchUserData = async () => {
-      setLoading(true);
-      try {
-        const userRef = ref(db, `users/${user.id}`);
-        const snapshot = await get(userRef);
-        if (snapshot.exists()) {
-          const data = snapshot.val();
-          setUser(prev => ({ ...prev, ...data.profile }));
-          setStats(data.stats || {});
-          setMoodHistory(data.moodHistory || []);
-        } else {
-          // Create default data if not present
-          const defaultProfile = {
-            name: user.name || 'Music Lover',
-            avatar: user.avatar || '👤',
-            email: user.email || '',
-          };
-          const defaultStats = {
-            totalPlaylists: 0,
-            totalSongs: 0,
-            totalLikes: 0,
-            favoriteMood: '',
-            averageMood: '',
-            weeklyStreak: 0,
-            totalListeningTime: '0h 0m',
-            topGenres: [],
-            recentActivity: []
-          };
-          const defaultMoodHistory = [];
-          await set(userRef, {
-            profile: defaultProfile,
-            stats: defaultStats,
-            moodHistory: defaultMoodHistory
-          });
-          setUser(prev => ({ ...prev, ...defaultProfile }));
-          setStats(defaultStats);
-          setMoodHistory(defaultMoodHistory);
-        }
-      } catch (err) {
-        console.error('Profile load error:', err);
-        toast.error('Failed to load profile data.');
-      }
-      setLoading(false);
-    };
-    fetchUserData();
-    // eslint-disable-next-line
-  }, [user.id]);
+<<<<<<< HEAD
+  // Use user context data for stats
+  const stats = {
+    totalPlaylists: user.totalPlaylists || 0,
+    recommendationsCount: user.recommendationsCount || 0,
+    totalLikes: user.totalLikes || 0,
+    favoriteMood: user.favoriteMood || 'happy',
+    averageMood: user.averageMood || 'positive',
+    weeklyStreak: user.dayStreak || 0,
+    topGenres: user.topGenres || user.favoriteGenres || [],
+    recentActivity: user.recentActivity || []
+  };
+
+  const moodHistory = user.moodHistory || [];
+=======
+  // Use user context data for stats
+  const stats = {
+    totalPlaylists: user.totalPlaylists || 0,
+    recommendationsCount: user.recommendationsCount || 0,
+    totalLikes: user.totalLikes || 0,
+    favoriteMood: user.favoriteMood || 'happy',
+    averageMood: user.averageMood || 'positive',
+    weeklyStreak: user.dayStreak || 0,
+    topGenres: user.topGenres || user.favoriteGenres || [],
+    recentActivity: user.recentActivity || []
+  };
+
+  const moodHistory = user.moodHistory || [];
 
   const getMoodColor = (mood) => {
     const colors = {
@@ -294,6 +273,7 @@ const Profile = () => {
                 </div>
               </div>
             </div>
+
           </motion.div>
 
           {/* Analytics */}
@@ -331,13 +311,13 @@ const Profile = () => {
                   color: 'white',
                   marginBottom: '4px',
                 }}>
-                  {stats.totalSongs}
+                  {stats.recommendationsCount}
                 </div>
                 <div style={{
                   fontSize: '0.9rem',
                   color: 'rgba(255, 255, 255, 0.7)',
                 }}>
-                  Songs Listened
+                  Number of Recommendations with MoodFlow
                 </div>
               </div>
 
@@ -370,34 +350,7 @@ const Profile = () => {
                 </div>
               </div>
 
-              <div className="card" style={{ textAlign: 'center' }}>
-                <div style={{
-                  width: '50px',
-                  height: '50px',
-                  borderRadius: '12px',
-                  background: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  margin: '0 auto 12px',
-                }}>
-                  <Calendar size={24} color="white" />
-                </div>
-                <div style={{
-                  fontSize: '1.5rem',
-                  fontWeight: '700',
-                  color: 'white',
-                  marginBottom: '4px',
-                }}>
-                  {stats.totalListeningTime}
-                </div>
-                <div style={{
-                  fontSize: '0.9rem',
-                  color: 'rgba(255, 255, 255, 0.7)',
-                }}>
-                  Listening Time
-                </div>
-              </div>
+              {/* Removed Listening Time card */}
             </div>
 
             {/* Mood History Chart */}
@@ -414,7 +367,7 @@ const Profile = () => {
                 <BarChart3 size={20} />
                 Weekly Mood History
               </h3>
-              
+
               <div style={{
                 display: 'flex',
                 alignItems: 'end',
@@ -462,7 +415,7 @@ const Profile = () => {
                 <Calendar size={20} />
                 Recent Activity
               </h3>
-              
+
               <div style={{
                 display: 'flex',
                 flexDirection: 'column',
@@ -493,7 +446,7 @@ const Profile = () => {
                       {activity.type === 'mood_analyzed' && '😊'}
                       {activity.type === 'playlist_shared' && '📤'}
                     </div>
-                    
+
                     <div style={{ flex: 1 }}>
                       <div style={{
                         fontSize: '0.9rem',
@@ -531,7 +484,7 @@ const Profile = () => {
                 <Music size={20} />
                 Top Genres
               </h3>
-              
+
               <div style={{
                 display: 'flex',
                 gap: '12px',

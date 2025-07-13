@@ -52,7 +52,7 @@ const SpotifyPlayer = ({ currentSong, isPlaying, onPlayPause, onNext, onPrevious
                 });
             }
         }
-    }, [currentSong]);
+    }, [currentSong, isPlaying]);
 
     // Handle play/pause
     useEffect(() => {

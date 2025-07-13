@@ -7,6 +7,7 @@ import toast from 'react-hot-toast';
 import axios from 'axios';
 import EmotionDetector from '../components/EmotionDetector';
 import SpotifyPlayer from '../components/SpotifyPlayer';
+import { API_BASE_URL, API_ENDPOINTS } from '../config/api';
 
 const MoodAnalyzer = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -18,7 +19,7 @@ const MoodAnalyzer = () => {
   const [showPlaylistModal, setShowPlaylistModal] = useState(false);
 
   const socket = useContext(SocketContext);
-  const { user, updateUserPreferences } = useUser();
+  const { user, updateUserPreferences, incrementRecommendationsCount, updatePlaylists } = useUser();
   const [newGenre, setNewGenre] = useState('');
   const [newArtist, setNewArtist] = useState('');
 
@@ -49,8 +50,8 @@ const MoodAnalyzer = () => {
   const handleEmotionDetected = async (emotionData) => {
     try {
       // Get AI-powered recommendations from server
-      const response = await axios.post('http://localhost:5001/api/analyze-mood', {
-        emotionData,
+      const response = await axios.post(`${API_BASE_URL}${API_ENDPOINTS.GET_RECOMMENDATIONS}`, {
+        mood: emotionData.dominant,
         userPreferences: {
           favoriteGenres: user?.favoriteGenres || [],
           favoriteArtists: user?.favoriteArtists || []
@@ -66,6 +67,7 @@ const MoodAnalyzer = () => {
         });
 
         setRecommendations(response.data.recommendations);
+        incrementRecommendationsCount(); // Increment recommendations count in Firebase
 
         // Add to history
         // setAnalysisHistory(prev => [...prev, {
@@ -200,22 +202,25 @@ const MoodAnalyzer = () => {
     }
 
     try {
-      const response = await axios.post('http://localhost:5001/api/create-playlist', {
+      // For now, we'll create the playlist locally since the API doesn't have this endpoint yet
+      const newPlaylist = {
+        id: Date.now(),
         name: playlistName,
         songs: recommendations,
         mood: currentMood.dominant,
-        userId: user.id
-      });
+        userId: user.id,
+        createdAt: new Date().toISOString()
+      };
 
-      if (response.data.success) {
-        toast.success('Playlist created successfully!');
-        setShowPlaylistModal(false);
-        setPlaylistName('');
+      // Update playlists in Firebase
+      updatePlaylists([...(user.playlists || []), newPlaylist]);
+      toast.success('Playlist created successfully!');
+      setShowPlaylistModal(false);
+      setPlaylistName('');
 
-        // Emit to socket
-        if (socket) {
-          socket.emit('playlist-created', response.data.playlist);
-        }
+      // Emit to socket if available
+      if (socket) {
+        socket.emit('playlist-created', newPlaylist);
       }
     } catch (error) {
       toast.error('Failed to create playlist');
@@ -317,7 +322,7 @@ const MoodAnalyzer = () => {
                 gap: '8px',
                 marginBottom: '8px',
               }}>
-                {user.favoriteGenres.map((genre, index) => (
+                {(user.favoriteGenres || []).map((genre, index) => (
                   <span
                     key={index}
                     style={{
@@ -366,7 +371,7 @@ const MoodAnalyzer = () => {
                 gap: '8px',
                 marginBottom: '8px',
               }}>
-                {user.favoriteArtists.map((artist, index) => (
+                {(user.favoriteArtists || []).map((artist, index) => (
                   <span
                     key={index}
                     style={{

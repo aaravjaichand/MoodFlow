@@ -5,6 +5,7 @@ import { UserContext } from '../context/UserContext';
 import { SocketContext } from '../context/SocketContext';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import { API_BASE_URL, API_ENDPOINTS } from '../config/api';
 
 const Playlists = () => {
   const [playlists, setPlaylists] = useState([]);
@@ -27,9 +28,12 @@ const Playlists = () => {
 
   const fetchPlaylists = async () => {
     try {
-      const response = await axios.get('http://localhost:5001/api/playlists');
-      if (response.data.success) {
-        setPlaylists(response.data.playlists);
+      // For now, use local playlists from user context
+      // In the future, this would fetch from the API
+      if (user && user.playlists) {
+        setPlaylists(user.playlists);
+      } else {
+        setPlaylists([]);
       }
     } catch (error) {
       console.error('Error fetching playlists:', error);
@@ -40,17 +44,15 @@ const Playlists = () => {
 
   const likePlaylist = async (playlistId) => {
     try {
-      const response = await axios.post(`http://localhost:5001/api/playlist/${playlistId}/like`);
-      if (response.data.success) {
-        setPlaylists(prev =>
-          prev.map(playlist =>
-            playlist.id === playlistId
-              ? { ...playlist, likes: response.data.likes }
-              : playlist
-          )
-        );
-        toast.success('Playlist liked! ❤️');
-      }
+      // For now, handle likes locally
+      setPlaylists(prev =>
+        prev.map(playlist =>
+          playlist.id === playlistId
+            ? { ...playlist, likes: (playlist.likes || 0) + 1 }
+            : playlist
+        )
+      );
+      toast.success('Playlist liked! ❤️');
     } catch (error) {
       toast.error('Failed to like playlist');
     }
